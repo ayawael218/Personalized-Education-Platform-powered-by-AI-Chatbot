@@ -28,6 +28,10 @@ def test_data_preparation():
     # Prepare or load the data
     df, embeddings_matrix = prepare_or_load_data(INPUT_FILE, OUTPUT_FILE)
 
+    if df is None or embeddings_matrix is None:
+        logging.error("Data preparation failed!")
+        return
+
     # Ensure Qdrant collection exists
     client = get_qdrant_client()
     ensure_collection(client, embeddings_matrix.shape[1])  # Ensure collection is created
@@ -49,28 +53,34 @@ def verify_file(file_path, file_type):
 def test_qdrant_retrieval():
     logging.info("Testing Qdrant retrieval...")
 
-    client = get_qdrant_client()
-    model = SentenceTransformer("all-MiniLM-L6-v2")
+    try:
+        client = get_qdrant_client()
+        model = SentenceTransformer("all-MiniLM-L6-v2")
 
-    # Ensure Qdrant collection exists
-    ensure_collection(client, 384)  # 384 is the vector size for MiniLM
+        # Ensure Qdrant collection exists
+        ensure_collection(client, 384)  # 384 is the vector size for MiniLM
 
-    query = "What are some beginner courses on Python?"
-    relevant_courses = retrieve_courses(client, query, model, top_k=3)
+        query = "What are some beginner courses on Python?"
+        relevant_courses = retrieve_courses(client, query, model, top_k=3)
 
-    if relevant_courses:
-        logging.info("Retrieved Courses:")
-        for course in relevant_courses:
-            logging.info(f"Title: {course['title']}, Description: {course['description']}")
-    else:
-        logging.warning("No courses retrieved from Qdrant.")
+        if relevant_courses:
+            logging.info("Retrieved Courses:")
+            for course in relevant_courses:
+                logging.info(f"Title: {course['title']}, Description: {course['description']}")
+        else:
+            logging.warning("No courses retrieved from Qdrant.")
+    except Exception as e:
+        logging.error(f"Error during Qdrant retrieval: {str(e)}")
 
 # Function to verify that the RAG pipeline works
 def test_rag_pipeline():
     logging.info("Testing RAG pipeline...")
-    query = "What are some beginner courses on Python?"
-    response = rag_response(query)
-    logging.info(f"RAG Response: {response}")
+    try:
+        query = "What are some beginner courses on Python?"
+        response = rag_response(query)
+        logging.info(f"RAG Response: {response}")
+    except Exception as e:
+        logging.error(f"Error during RAG pipeline execution: {str(e)}")
 
 # Function to test conversation handling and logging
 def test_agents():

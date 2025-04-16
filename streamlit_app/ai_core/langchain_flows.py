@@ -1,89 +1,67 @@
-from .rag_pipeline import rag_response  
-from data_prepration.qdrant import retrieve_courses  
-import re
+from ai_core.rag_pipeline import rag_response
+from sentence_transformers import SentenceTransformer
 from qdrant_client_instance import get_qdrant_client
 import google.generativeai as genai
-from sentence_transformers import SentenceTransformer
+import re
 
-# Initizlize qdrant client and embeddings model
+# Initialize the embedding model and Qdrant client
 client = get_qdrant_client()
-model = SentenceTransformer('all-MiniLM-L6-v2')
+embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+llm = genai.GenerativeModel('gemini-2.0-flash')
 
-# Function for course recommendation
-def course_recommendation_response(query, client , model):
-    embedded_query = model.encode(query)
-    relevant_courses = retrieve_courses(client, embedded_query, top_k=3)
-    context = "\n".join(
-        [
-            f"Course Title: {course['title']}\n"
-            f"Description: {course['description']}\n"
-            f"Level: {course['level']}\n"
-            f"Subject: {course['subject']}\n"
-            f"URL: {course['url']}"
-            for course in relevant_courses
-        ]
-    )
-    response = rag_response(query)  
-    return response
+def safe_generate_content(prompt):
+    try:
+        response = llm.generate_content(prompt)
+        if response and hasattr(response, 'text'):
+            return response.text.strip()  # Ensure text attribute exists
+        else:
+            return "No response generated or unexpected response format."
+    except Exception as e:
+        return f"Error generating response: {str(e)}"
 
-# Function to answer course-related questions
-def answer_course_question(query, client , model):
-    # Extract course name or topic from query
-    course_name = extract_course_name_from_query(query)
-    if not course_name:
-        return "Sorry, I couldn't identify the course name from your query."
+
+# Flow 1: Course Recommendation & Course Details Retrieval based on the user's query
+def course_recommendation_flow(query):
+    embedded_query = embedding_model.encode(query)
+    # Retrieve top 3 relevant courses
+    return rag_response(query, embedded_query=embedded_query, client=client, top_k=3)
+
+# Flow 2: Q&A About a Specific Course in the Dataset
+def course_qa_flow(course_name, query):
+    # Get details of the course and formulate context
+    embedded_query = embedding_model.encode(query)
+    context_str = rag_response(query, embedded_query=embedded_query, client=client, top_k=3, return_context_only=True)
     
-    # Retrieve course details and generate a response
-    embedded_query = model.encode(query)
-    relevant_courses = retrieve_courses(client, embedded_query, top_k=1)
-
-    if not relevant_courses:
-        return "Sorry, I couldn't find any course matching your query."
-    
-    course = relevant_courses[0]
-    context = f"""
-    Course Title: {course['title']}
-    Description: {course['description']}
-    Level: {course['level']}
-    Subject: {course['subject']}
-    URL: {course['url']}
-    """
-    response = rag_response(query) 
-    return response
-
-# Function for career coaching
-def career_coaching_response(query,client , model):
-    # Extract course name or topic from query
-    course_name = extract_course_name_from_query(query)
-    if not course_name:
-        return "Sorry, I couldn't identify the course name from your query."
-    
-    # Retrieve course details and generate a response
-    embedded_query = model.encode(query)
-    relevant_courses = retrieve_courses(client, embedded_query, top_k=1)
-
-    if not relevant_courses:
-        return "Sorry, I couldn't find any course matching your query."
-    
-    course = relevant_courses[0]
-    context = f"""
-    Course Title: {course['title']}
-    Subject: {course['subject']}
-    Description: {course['description']}
-    """
+    # Generate a more focused response based on course content
     prompt = f"""
-    User Query: {query}
-    Course Details:
-    {context}
-    Generate career coaching advice for someone who has completed this course. Include:
-    - Potential job roles
-    - Industries where this knowledge is applicable
-    - Next steps for career advancement
-    - Skills gained from the course
+    You're a helpful assistant providing information about the course '{course_name}'. 
+    The course details are:
+    {context_str}
+    Now, answer the following question about this course: {query}
     """
-    response = rag_response(prompt)  
-    return response
 
+    # Use the LLM for question answering on the course details
+    #response = llm.generate_content(prompt)
+    return safe_generate_content(prompt)
+
+# Flow 3: Career Coaching - What’s After a Specific Course
+def career_coaching_flow(course_name):
+    # Get relevant courses and career paths based on the course name
+    query = f"What careers can I pursue after taking {course_name}?"
+    embedded_query = embedding_model.encode(query)
+    context_str = rag_response(query, embedded_query=embedded_query, client=client, top_k=5, return_context_only=True)
+
+    # Use the LLM to give career advice based on course context
+    prompt = f"""
+    You're a career coach. Based on the following course details, suggest potential career paths and next steps after completing the course '{course_name}'.
+    Course Details: 
+    {context_str}
+    Suggest the best career options after completing this course.
+    """
+
+    # Use LLM for generating career suggestions
+    #response = llm.generate_content(prompt)
+    return safe_generate_content(prompt)
 
 # Helper function to extract course name/topic from query
 def extract_course_name_from_query(query):

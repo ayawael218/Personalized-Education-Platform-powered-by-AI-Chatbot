@@ -1,5 +1,4 @@
-from ai_core.langchain_flows import course_recommendation_response,answer_course_question,career_coaching_response,extract_course_name_from_query
-
+from ai_core.langchain_flows import course_recommendation_flow, course_qa_flow, career_coaching_flow, extract_course_name_from_query
 from monitoring.agentops_logger import log_user_query, log_llm_response, log_error, end_session
 
 # List of possible intents (can be expanded)
@@ -25,16 +24,21 @@ def handle_conversation(query, session_id, client, model):
         course_name = handle_context(query, intent, session_id)
         print(f"[Agent] Resolved Course Name: {course_name}")
 
-        # Route query
+        # Route query based on intent
         if intent == "qa":
-            response = answer_course_question(query, client, model)
+            # Call the Q&A flow for a specific course
+            response = course_qa_flow(course_name, query)  # Use the updated flow
         elif intent == "career_coaching":
-            response = career_coaching_response(query, client, model)
+            # Call the Career Coaching flow for a specific course
+            response = career_coaching_flow(course_name)  # Use the updated flow
         elif intent == "course_recommendation":
-            response = course_recommendation_response(query, client, model)
+            # Call the Course Recommendation flow
+            response = course_recommendation_flow(query)  # Use the updated flow
         else:
             response = "I'm sorry, I didn't understand your query. Could you please clarify?"
 
+        # Log the response from LLM
+        log_llm_response(response, session_id)
         return response
 
     except Exception as e:
