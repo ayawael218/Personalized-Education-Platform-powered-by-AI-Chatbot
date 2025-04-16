@@ -2,15 +2,15 @@ from data_prepration.qdrant import retrieve_courses
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+import google.generativeai as genai
 
 # Configure the Gemini API key
-import google.generativeai as genai
 genai.configure(api_key="AIzaSyBZ9E4RG96F90hTvjZbD0hdc9E7Sm_nOk0")
 model = genai.GenerativeModel('gemini-2.0-flash')
 
 # Function to generate a response using the RAG pipeline
 def rag_response(user_query):
-    # Retrieve relevant courses from Qdrant
+    # Retrieve relevant courses from Qdrant locally
     relevant_courses = retrieve_courses(user_query, top_k=3)
     
     # Format the retrieved courses into a context string
@@ -37,12 +37,8 @@ def rag_response(user_query):
     response = model.generate_content(prompt)
     return response.text
 
-# Function to inspect embeddings
+# Function to inspect embeddings by calculating cosine similarities with the first embedding
 def inspect_embeddings(embeddings_matrix):
-    """
-    Inspect the embeddings by calculating cosine similarities with the first embedding.
-    :param embeddings_matrix: NumPy array of embeddings.
-    """
     if embeddings_matrix.size == 0:
         print("Embeddings matrix is empty.")
         return

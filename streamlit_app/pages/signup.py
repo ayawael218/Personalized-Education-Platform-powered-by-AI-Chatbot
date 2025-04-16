@@ -1,6 +1,7 @@
 import streamlit as st
 from auth.auth_utils import supabase_sign_up
 
+
 def sign_up_page():
     st.title("Sign Up")
     

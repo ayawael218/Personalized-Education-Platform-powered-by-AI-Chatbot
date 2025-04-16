@@ -4,6 +4,7 @@ from pages.signup import sign_up_page
 from pages.home import home_page
 from pages.chatbot import chatbot_page
 
+# To be improved 
 # Initialize session state
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False

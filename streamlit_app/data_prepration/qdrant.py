@@ -4,7 +4,7 @@ import pandas as pd
 from qdrant_client import models
 from qdrant_client_instance import get_qdrant_client
 
-# Upload embeddings and metadata to Qdrant
+# Upload embeddings and metadata to Qdrant local instance
 def upload_to_qdrant(metadata_df, embeddings_matrix, collection_name="courses"):
     client = get_qdrant_client()  # Use the shared singleton client
 

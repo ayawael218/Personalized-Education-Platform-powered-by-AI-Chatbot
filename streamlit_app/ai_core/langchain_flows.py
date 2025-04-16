@@ -5,6 +5,7 @@ from qdrant_client_instance import get_qdrant_client
 import google.generativeai as genai
 from sentence_transformers import SentenceTransformer
 
+# Initizlize qdrant client and embeddings model
 client = get_qdrant_client()
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
@@ -22,7 +23,7 @@ def course_recommendation_response(query, client , model):
             for course in relevant_courses
         ]
     )
-    response = rag_response(query)  # Use RAG pipeline
+    response = rag_response(query)  
     return response
 
 # Function to answer course-related questions
@@ -47,7 +48,7 @@ def answer_course_question(query, client , model):
     Subject: {course['subject']}
     URL: {course['url']}
     """
-    response = rag_response(query)  # Use RAG pipeline
+    response = rag_response(query) 
     return response
 
 # Function for career coaching
@@ -80,8 +81,9 @@ def career_coaching_response(query,client , model):
     - Next steps for career advancement
     - Skills gained from the course
     """
-    response = rag_response(prompt)  # Use RAG pipeline
+    response = rag_response(prompt)  
     return response
+
 
 # Helper function to extract course name/topic from query
 def extract_course_name_from_query(query):
@@ -89,7 +91,7 @@ def extract_course_name_from_query(query):
     match = re.search(r"'(.*?)'", query)
     if match:
         return match.group(1).strip()
-    # Fallback: Look for known subjects in the query
+    # Look for known subjects in the query
     subjects = ["marketing", "data science", "python", "machine learning", "ai",
                 "finance", "cybersecurity", "design", "cloud computing", "excel"]
     query_lower = query.lower()

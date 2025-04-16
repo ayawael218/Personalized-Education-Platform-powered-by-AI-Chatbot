@@ -25,23 +25,23 @@ def categorize_course_status(url):
         soup = BeautifulSoup(response.text, 'html.parser')
         html = response.text
 
-        # Non-English check
+        # Non-English check case
         if '<html lang="en"' not in html and 'lang="en"' not in html:
             return "Non-English"
 
-        # Error page
+        # Error page case
         error_tag = soup.find('h1', string=lambda x: x and "we can’t find the page you’re looking for" in x.lower())
         if error_tag:
             return "Error Page"
 
-        # Course unavailable
+        # Course unavailable case
         title_check = soup.find('div', {'data-purpose': 'safely-set-inner-html:limited-access-container:title'})
         subtitle_check = soup.find('div', {'data-purpose': 'safely-set-inner-html:limited-access-controller:subtitle'})
         if (title_check and "no longer accepting enrollments" in title_check.get_text(strip=True).lower()) or \
            (subtitle_check and "no longer accepting enrollments" in subtitle_check.get_text(strip=True).lower()):
             return "Course Unavailable"
 
-        # Private course
+        # Private course case
         private_tag = soup.find('div', string=lambda x: x and "this is a private course." in x.lower())
         if private_tag:
             return "Private Course"

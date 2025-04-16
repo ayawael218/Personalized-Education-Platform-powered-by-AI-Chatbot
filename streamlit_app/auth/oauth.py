@@ -2,7 +2,8 @@ import os
 import requests
 from dotenv import load_dotenv
 
-load_dotenv()  # Load environment variables 
+# Load environment variables 
+load_dotenv()  
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
@@ -29,7 +30,7 @@ def handle_oauth_redirect(authorization_code, redirect_uri):
     url = f"{SUPABASE_URL}/auth/v1/token"
     payload = {
         "grant_type": "authorization_code",
-        "code": authorization_code,  # This will be the code returned by GitHub
+        "code": authorization_code,     # code returned by GitHub
         "redirect_uri": redirect_uri,
     }
 

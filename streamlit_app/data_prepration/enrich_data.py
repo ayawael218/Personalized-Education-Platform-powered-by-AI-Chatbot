@@ -17,9 +17,9 @@ ENGLISH_STOP_WORDS = set(stopwords.words('english'))
 
 # Preprocess text
 def preprocess_text(text):
-    text = text.lower()  # Convert to lowercase
-    text = re.sub(r'[^a-z\s]', '', text)  # Remove special characters and numbers
-    text = re.sub(r'\s+', ' ', text).strip()  # Remove extra spaces
+    text = text.lower()                             # Convert to lowercase
+    text = re.sub(r'[^a-z\s]', '', text)            # Remove special characters and numbers
+    text = re.sub(r'\s+', ' ', text).strip()        # Remove extra spaces
 
     # Remove stopwords
     words = text.split()

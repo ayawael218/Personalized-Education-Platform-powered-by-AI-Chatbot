@@ -15,7 +15,7 @@ METADATA_PATH = "course_metadata.csv"
 MODEL_NAME = "all-MiniLM-L6-v2"
 
 def prepare_or_load_data(input_file, output_file=CLEANED_DATA_PATH):
-    # === STEP 1: Load or generate cleaned data ===
+    # Load or generate cleaned data 
     if not os.path.exists(output_file):
         print("[Data Prep] Cleaned dataset not found. Running full pipeline...")
         df = load_dataset(input_file)
@@ -34,7 +34,7 @@ def prepare_or_load_data(input_file, output_file=CLEANED_DATA_PATH):
             df = df.drop(columns=['embeddings'])
             df.to_csv(output_file, index=False)
 
-    # === STEP 2: Generate or load embeddings ===
+    # Generate or load embeddings 
     if not os.path.exists(EMBEDDINGS_PATH):
         print("[Embeddings] Generating new embeddings...")
         model = SentenceTransformer(MODEL_NAME)
@@ -52,12 +52,12 @@ def prepare_or_load_data(input_file, output_file=CLEANED_DATA_PATH):
     print(f"[Embeddings] Matrix shape: {embeddings_matrix.shape}")
     print(f"[Embeddings] First vector type: {type(embeddings_matrix[0])}")
 
-    # Optional: Verify embedding integrity
+    # Verify embedding integrity
     for i, vec in enumerate(embeddings_matrix):
         if not isinstance(vec, np.ndarray) or vec.ndim != 1:
             raise ValueError(f"[Error] Malformed embedding at index {i}: {vec}")
 
-    # === STEP 3: Extract or load metadata ===
+    # Extract or load metadata 
     if not os.path.exists(METADATA_PATH):
         print("[Metadata] Extracting metadata...")
         metadata_df = df[['course_id', 'course_title', 'descriptions', 'level', 'subject', 'url', 'is_paid']]
@@ -67,7 +67,7 @@ def prepare_or_load_data(input_file, output_file=CLEANED_DATA_PATH):
         print("[Metadata] Loading existing metadata...")
         metadata_df = pd.read_csv(METADATA_PATH)
 
-    # === STEP 4: Upload to Qdrant ===
+    # Upload to Qdrant 
     print("[Qdrant] Uploading to vector database...")
     client = get_qdrant_client()
     upload_to_qdrant(client, metadata_df, embeddings_matrix)

@@ -2,7 +2,7 @@ from ai_core.langchain_flows import course_recommendation_response,answer_course
 
 from monitoring.agentops_logger import log_user_query, log_llm_response, log_error, end_session
 
-# List of possible intents
+# List of possible intents (can be expanded)
 INTENTS = {
     "qa": ["what is", "describe", "explain", "tell me about"],
     "career_coaching": ["career", "job", "path", "opportunity", "after completing"],
@@ -12,20 +12,20 @@ INTENTS = {
 # In-memory conversation context store
 conversation_context = {}
 
-# Main router: Handles user query, detects intent, manages context, routes to the correct flow
+# Handles user query, detects intent, manages context, routes to the correct flow
 def handle_conversation(query, session_id, client, model):
     global conversation_context
 
     try:
-        # 1. Classify the intent
+        # Classify the intent
         intent = classify_intent(query)
         print(f"[Agent] Identified Intent: {intent}")
 
-        # 2. Handle context (course name memory)
+        # Handle context (course name memory)
         course_name = handle_context(query, intent, session_id)
         print(f"[Agent] Resolved Course Name: {course_name}")
 
-        # 3. Route query
+        # Route query
         if intent == "qa":
             response = answer_course_question(query, client, model)
         elif intent == "career_coaching":
@@ -44,25 +44,19 @@ def handle_conversation(query, session_id, client, model):
         return error_msg
 
     finally:
-        # Optionally end session
         end_session(session_id)
 
 
+# Classify the intent of the user query based on predefined keywords
 def classify_intent(query):
-    """
-    Classify the intent of the user query based on predefined keywords.
-    """
     query_lower = query.lower()
     for intent, keywords in INTENTS.items():
         if any(keyword in query_lower for keyword in keywords):
             return intent
     return "unknown"
 
-
+# Maintain course-related context across user turns
 def handle_context(query, intent, session_id):
-    """
-    Maintain course-related context across user turns.
-    """
     global conversation_context
     course_name = extract_course_name_from_query(query)
 

@@ -21,7 +21,7 @@ EMBEDDINGS_FILE = "course_embeddings.npy"
 def ensure_collection(client, vector_size):
     ensure_courses_collection(client, vector_size)
 
-# Test Data Preparation: Load or clean the data and ensure Qdrant collection
+# Test Data Preparation
 def test_data_preparation():
     logging.info("Testing data preparation...")
 
@@ -45,7 +45,7 @@ def verify_file(file_path, file_type):
     else:
         logging.error(f"{file_type} file '{file_path}' not found!")
 
-# Test Qdrant Retrieval: Query the database and retrieve relevant courses
+#  Function to test Querying the database and retrieve relevant courses
 def test_qdrant_retrieval():
     logging.info("Testing Qdrant retrieval...")
 
@@ -65,14 +65,14 @@ def test_qdrant_retrieval():
     else:
         logging.warning("No courses retrieved from Qdrant.")
 
-# Test RAG pipeline: Verify that the RAG pipeline works
+# Function to verify that the RAG pipeline works
 def test_rag_pipeline():
     logging.info("Testing RAG pipeline...")
     query = "What are some beginner courses on Python?"
     response = rag_response(query)
     logging.info(f"RAG Response: {response}")
 
-# Test Agents: Test conversation handling and logging
+# Function to test conversation handling and logging
 def test_agents():
     logging.info("Testing Agents...")
 
@@ -94,7 +94,7 @@ def test_agents():
 
     end_session(session_id)
 
-# Main entry point for testing
+
 if __name__ == "__main__":
     try:
         test_data_preparation()

@@ -1,7 +1,8 @@
 import streamlit as st
+# To be improved
 
 def home_page():
-    st.title("Welcome to the AI Chatbot Platform")
+    st.title("AI Chatbot Platform")
     st.markdown("""
         This platform allows you to:
         - **Explore courses** based on your interests
