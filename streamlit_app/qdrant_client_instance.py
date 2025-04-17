@@ -1,3 +1,4 @@
+# this file for creating a singleton instance of Qdrant client
 from qdrant_client import QdrantClient
 
 # Create a singleton instance for Qdrant client

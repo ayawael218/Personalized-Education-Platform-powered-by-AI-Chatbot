@@ -1,3 +1,4 @@
+# This file for testing the AI pipeline and its components
 import logging
 import os
 from sentence_transformers import SentenceTransformer
@@ -8,7 +9,7 @@ from ai_core.agents import handle_conversation
 from monitoring.agentops_logger import start_session, log_user_query, log_llm_response, end_session
 from qdrant_client_instance import get_qdrant_client
 
-# Configure logging
+# Configure logging for debugging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Constants
@@ -21,6 +22,7 @@ EMBEDDINGS_FILE = "course_embeddings.npy"
 def ensure_collection(client, vector_size):
     ensure_courses_collection(client, vector_size)
 
+
 # Test Data Preparation
 def test_data_preparation():
     logging.info("Testing data preparation...")
@@ -28,6 +30,7 @@ def test_data_preparation():
     # Prepare or load the data
     df, embeddings_matrix = prepare_or_load_data(INPUT_FILE, OUTPUT_FILE)
 
+    # if data preparation fails , log the error and return
     if df is None or embeddings_matrix is None:
         logging.error("Data preparation failed!")
         return
@@ -42,6 +45,7 @@ def test_data_preparation():
 
     logging.info("Data preparation completed.")
 
+
 # Helper function to verify file existence
 def verify_file(file_path, file_type):
     if os.path.exists(file_path):
@@ -49,20 +53,20 @@ def verify_file(file_path, file_type):
     else:
         logging.error(f"{file_type} file '{file_path}' not found!")
 
+
 #  Function to test Querying the database and retrieve relevant courses
 def test_qdrant_retrieval():
     logging.info("Testing Qdrant retrieval...")
-
     try:
         client = get_qdrant_client()
         model = SentenceTransformer("all-MiniLM-L6-v2")
 
         # Ensure Qdrant collection exists
         ensure_collection(client, 384)  # 384 is the vector size for MiniLM
-
+        # test retrieval of courses
         query = "What are some beginner courses on Python?"
         relevant_courses = retrieve_courses(client, query, model, top_k=3)
-
+        # check if retrieved course from Qdrant or not 
         if relevant_courses:
             logging.info("Retrieved Courses:")
             for course in relevant_courses:
@@ -71,6 +75,7 @@ def test_qdrant_retrieval():
             logging.warning("No courses retrieved from Qdrant.")
     except Exception as e:
         logging.error(f"Error during Qdrant retrieval: {str(e)}")
+
 
 # Function to verify that the RAG pipeline works
 def test_rag_pipeline():
@@ -81,6 +86,7 @@ def test_rag_pipeline():
         logging.info(f"RAG Response: {response}")
     except Exception as e:
         logging.error(f"Error during RAG pipeline execution: {str(e)}")
+
 
 # Function to test conversation handling and logging
 def test_agents():
@@ -95,7 +101,7 @@ def test_agents():
         "Can you tell me more about the first course?",
         "What career opportunities are available after completing this course?"
     ]
-    
+    # AI flow for generating responses to test queries
     for query in test_queries:
         log_user_query(query, session_id)
         response = handle_conversation(query, session_id, get_qdrant_client(), SentenceTransformer("all-MiniLM-L6-v2"))
@@ -104,7 +110,7 @@ def test_agents():
 
     end_session(session_id)
 
-
+# main to run all test
 if __name__ == "__main__":
     try:
         test_data_preparation()

@@ -1,3 +1,4 @@
+# this file for logging events to AgentOps
 import agentops
 from datetime import datetime
 
@@ -7,6 +8,7 @@ agentops.init(api_key="ff9c5c0c-6bb2-46fa-9e4e-9f78c22a258b")
 # Starts a new AgentOps session
 def start_session(session_id):
     log_event(event_type="session_start", details={"session_id": session_id})
+
 
 #  Logs a custom event using AgentOps
 def log_event(event_type, details=None):
@@ -21,15 +23,19 @@ def log_event(event_type, details=None):
     except Exception as e:
         print(f"Failed to log event to AgentOps: {str(e)}")
 
+# Function to log user queries
 def log_user_query(query, session_id):
     log_event("user_query", {"query": query, "session_id": session_id})
 
+# Function to log LLM responses
 def log_llm_response(response, session_id, intent=None):
     log_event("llm_response", {"response": response, "session_id": session_id, "intent": intent})
 
+# Function to log errors
 def log_error(error_message, session_id):
     log_event("error", {"error_message": error_message, "session_id": session_id})
 
+# Function to end the session
 def end_session(session_id):
     agentops.end_session()
     print(f"[AGENTOPS] Session '{session_id}' ended and uploaded.")

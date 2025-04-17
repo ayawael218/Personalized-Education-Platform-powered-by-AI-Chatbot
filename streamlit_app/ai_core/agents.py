@@ -1,3 +1,4 @@
+# Tc
 from ai_core.langchain_flows import course_recommendation_flow, course_qa_flow, career_coaching_flow, extract_course_name_from_query
 from monitoring.agentops_logger import log_user_query, log_llm_response, log_error, end_session
 
@@ -8,10 +9,11 @@ INTENTS = {
     "course_recommendation": ["recommend", "suggest", "beginner course", "what courses", "course on", "learning path"]
 }
 
-# In-memory conversation context store
+# In-memory conversation context to store user session data
 conversation_context = {}
 
-# Handles user query, detects intent, manages context, routes to the correct flow
+
+# Function to handles user query, detects intent, manages context, routes to the correct flow
 def handle_conversation(query, session_id, client, model):
     global conversation_context
 
@@ -27,13 +29,13 @@ def handle_conversation(query, session_id, client, model):
         # Route query based on intent
         if intent == "qa":
             # Call the Q&A flow for a specific course
-            response = course_qa_flow(course_name, query)  # Use the updated flow
+            response = course_qa_flow(course_name, query)  
         elif intent == "career_coaching":
             # Call the Career Coaching flow for a specific course
-            response = career_coaching_flow(course_name)  # Use the updated flow
+            response = career_coaching_flow(course_name) 
         elif intent == "course_recommendation":
             # Call the Course Recommendation flow
-            response = course_recommendation_flow(query)  # Use the updated flow
+            response = course_recommendation_flow(query)  
         else:
             response = "I'm sorry, I didn't understand your query. Could you please clarify?"
 
@@ -41,6 +43,7 @@ def handle_conversation(query, session_id, client, model):
         log_llm_response(response, session_id)
         return response
 
+    # handle exceptions for flows
     except Exception as e:
         error_msg = f"An unexpected error occurred: {str(e)}"
         print(f"[Agent Error] {error_msg}")
@@ -51,7 +54,7 @@ def handle_conversation(query, session_id, client, model):
         end_session(session_id)
 
 
-# Classify the intent of the user query based on predefined keywords
+# Function to classify the intent of the user query based on predefined keywords
 def classify_intent(query):
     query_lower = query.lower()
     for intent, keywords in INTENTS.items():
@@ -59,7 +62,8 @@ def classify_intent(query):
             return intent
     return "unknown"
 
-# Maintain course-related context across user turns
+
+#Function to maintain course-related context across user turns
 def handle_context(query, intent, session_id):
     global conversation_context
     course_name = extract_course_name_from_query(query)
@@ -70,6 +74,7 @@ def handle_context(query, intent, session_id):
                 "last_course_name": course_name,
                 "last_intent": intent
             }
+            # log the course name for the session
         elif session_id in conversation_context:
             course_name = conversation_context[session_id].get("last_course_name")
 

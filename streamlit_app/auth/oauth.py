@@ -1,3 +1,4 @@
+# This file contains the oauth authentication logic for GitHub using supabase
 import os
 import requests
 from dotenv import load_dotenv
@@ -5,6 +6,7 @@ from dotenv import load_dotenv
 # Load environment variables 
 load_dotenv()  
 
+# supabase cresdentials
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
@@ -25,6 +27,7 @@ def oauth_login(provider):
     else:
         print("Error initiating OAuth:", response.status_code, response.text)
 
+
 # Function to handle the OAuth response (after user authorizes via GitHub)
 def handle_oauth_redirect(authorization_code, redirect_uri):
     url = f"{SUPABASE_URL}/auth/v1/token"
@@ -43,7 +46,7 @@ def handle_oauth_redirect(authorization_code, redirect_uri):
     response = requests.post(url, json=payload, headers=headers)
     
     if response.status_code == 200:
-        return response.json()  # This will contain user session data
+        return response.json()  # This will contain user session data for the authenticated user
     else:
         print(f"Error fetching token: {response.status_code}")
         return None

@@ -1,3 +1,4 @@
+# This file for enriching the dataset with semantic tags and embeddings
 import re
 import nltk
 from nltk.corpus import stopwords
@@ -35,6 +36,7 @@ def tokenize_and_lemmatize(text):
 
 # Load models
 nlp = spacy.load("en_core_web_sm")
+# load BERT model for semantic embeddings
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
 # Extract semantic tags

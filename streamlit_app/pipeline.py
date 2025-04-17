@@ -1,3 +1,4 @@
+# This file handle the pipeline for data preparation, embedding generation and uploading to Qdrant
 import os
 import numpy as np
 import pandas as pd
@@ -13,6 +14,7 @@ EMBEDDINGS_PATH = "course_embeddings.npy"
 METADATA_PATH = "course_metadata.csv"
 MODEL_NAME = "all-MiniLM-L6-v2"
 
+# Function to prepare or load data
 def prepare_or_load_data(input_file, output_file=CLEANED_DATA_PATH):
     # Load or generate cleaned data 
     if not os.path.exists(output_file):
@@ -24,6 +26,7 @@ def prepare_or_load_data(input_file, output_file=CLEANED_DATA_PATH):
             df = enrich_dataset(df)
             df.to_csv(output_file, index=False)
             print(f"[Data Prep] Cleaned dataset saved to '{output_file}'")
+            # handle errors in the preparation process
         except Exception as e:
             print(f"[Data Prep Error] Error during data preparation: {e}")
             return None, None
@@ -37,6 +40,7 @@ def prepare_or_load_data(input_file, output_file=CLEANED_DATA_PATH):
             df = df.drop(columns=['embeddings'])
             df.to_csv(output_file, index=False)
 
+    # if embeddings doesn't exist, generate them
     # Generate or load embeddings
     if not os.path.exists(EMBEDDINGS_PATH):
         print("[Embeddings] Generating new embeddings...")
@@ -47,6 +51,7 @@ def prepare_or_load_data(input_file, output_file=CLEANED_DATA_PATH):
             )
             df = df[df['embeddings'].apply(lambda x: isinstance(x, np.ndarray) and x.ndim == 1)]
             embeddings_matrix = np.vstack(df['embeddings'].values)
+            # save embeddings as numpy array
             np.save(EMBEDDINGS_PATH, embeddings_matrix)
             print(f"[Embeddings] Saved to '{EMBEDDINGS_PATH}'")
         except Exception as e:
@@ -60,10 +65,11 @@ def prepare_or_load_data(input_file, output_file=CLEANED_DATA_PATH):
             print(f"[Embeddings Error] Error loading embeddings: {e}")
             return None, None
 
+    # debugging lines for embeddings marix 
     print(f"[Embeddings] Matrix shape: {embeddings_matrix.shape}")
     print(f"[Embeddings] First vector type: {type(embeddings_matrix[0])}")
 
-    # Verify embedding integrity
+    # Verify embedding integrity (if malformed)
     for i, vec in enumerate(embeddings_matrix):
         if not isinstance(vec, np.ndarray) or vec.ndim != 1:
             raise ValueError(f"[Error] Malformed embedding at index {i}: {vec}")
@@ -89,6 +95,7 @@ def prepare_or_load_data(input_file, output_file=CLEANED_DATA_PATH):
     # Upload to Qdrant 
     print("[Qdrant] Uploading to vector database...")
     try:
+        # call get_qdrant_client to get the client instance
         client = get_qdrant_client()
         upload_to_qdrant(client, metadata_df, embeddings_matrix)
         print("[Qdrant] Upload complete.")
